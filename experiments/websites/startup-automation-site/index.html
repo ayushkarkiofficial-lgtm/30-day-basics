@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tasklift Automation</title>
+    <meta
+      name="description"
+      content="Tasklift Automation helps growing companies replace repetitive manual work with practical automation."
+    >
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Tasklift Automation home">
+        <span class="brand-mark" aria-hidden="true">T</span>
+        <span>Tasklift Automation</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#features">Services</a>
+        <a href="#contact">Contact</a>
+        <a href="#saved-submissions">Saved</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">48-hour workflow review</p>
+          <h1 id="hero-title">Find the manual tasks your team should automate first.</h1>
+          <p class="hero-text">
+            Tasklift helps growing teams turn one repetitive process into a clear
+            automation plan, with simple workflow builds and human review where
+            judgment still matters.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#contact">Request a workflow review</a>
+            <a class="button secondary" href="#features">See review focus areas</a>
+          </div>
+          <div class="trust-strip" aria-label="Workflow review trust signals">
+            <span>One process mapped</span>
+            <span>No-code first</span>
+            <span>Human approval points</span>
+          </div>
+        </div>
+
+        <div class="hero-media" aria-label="Automation workflow dashboard preview">
+          <img
+            src="https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1200&q=80"
+            alt="Team reviewing work on laptops in a modern office"
+          >
+        </div>
+      </section>
+
+      <section class="features" id="features" aria-labelledby="features-title">
+        <div class="section-heading">
+          <p class="eyebrow">Focused services</p>
+          <h2 id="features-title">A practical review before you buy or build automation.</h2>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <span class="feature-number">01</span>
+            <h3>Manual task mapping</h3>
+            <p>
+              We identify the repeated handoffs, copy-paste steps, inbox checks,
+              and spreadsheet updates that are worth fixing first.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-number">02</span>
+            <h3>Simple workflow builds</h3>
+            <p>
+              We sketch the simplest workflow for lead routing, document intake,
+              reminders, reporting, or internal approvals.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-number">03</span>
+            <h3>Human review points</h3>
+            <p>
+              We mark where people should approve risky AI output,
+              customer-facing messages, and important decisions.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="contact" id="contact" aria-labelledby="contact-title">
+        <div class="contact-intro">
+          <p class="eyebrow">Contact</p>
+          <h2 id="contact-title">Send one process you repeat every week.</h2>
+          <p>
+            Describe the task, where it starts, and who handles it today. We will
+            use that as the starting point for a focused workflow review.
+          </p>
+        </div>
+
+        <div class="contact-tools">
+          <form class="contact-form" action="#" method="post" novalidate>
+            <label>
+              Name
+              <input type="text" name="name" autocomplete="name" required>
+              <span class="field-error" data-error-for="name"></span>
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" autocomplete="email" required>
+              <span class="field-error" data-error-for="email"></span>
+            </label>
+            <label>
+              Weekly process to review
+              <textarea name="task" rows="5" required></textarea>
+              <span class="field-error" data-error-for="task"></span>
+            </label>
+            <p class="form-status" aria-live="polite"></p>
+            <button class="button primary" type="submit">Send request</button>
+          </form>
+
+          <section class="saved-submissions" id="saved-submissions" aria-labelledby="saved-submissions-title">
+            <div class="saved-submissions-header">
+              <p class="eyebrow">Browser demo storage</p>
+              <h2 id="saved-submissions-title">Saved submissions</h2>
+              <p>
+                These requests are stored only in this browser for the demo.
+              </p>
+            </div>
+            <div class="submission-list" data-submission-list aria-live="polite"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <script>
+      const form = document.querySelector(".contact-form");
+      const statusMessage = form.querySelector(".form-status");
+      const submissionList = document.querySelector("[data-submission-list]");
+      const errors = {
+        name: form.querySelector('[data-error-for="name"]'),
+        email: form.querySelector('[data-error-for="email"]'),
+        task: form.querySelector('[data-error-for="task"]'),
+      };
+
+      function clearErrors() {
+        Object.values(errors).forEach((error) => {
+          error.textContent = "";
+        });
+        statusMessage.textContent = "";
+        statusMessage.className = "form-status";
+      }
+
+      function isValidEmail(value) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      }
+
+      function validateForm(data) {
+        const nextErrors = {};
+
+        if (!data.name) {
+          nextErrors.name = "Enter your name.";
+        }
+
+        if (!data.email) {
+          nextErrors.email = "Enter your email.";
+        } else if (!isValidEmail(data.email)) {
+          nextErrors.email = "Enter a valid email address.";
+        }
+
+        if (!data.task) {
+          nextErrors.task = "Describe one task to review.";
+        }
+
+        return nextErrors;
+      }
+
+      function getSavedSubmissions() {
+        try {
+          const parsedSubmissions = JSON.parse(localStorage.getItem("taskliftLeads") || "[]");
+          return Array.isArray(parsedSubmissions) ? parsedSubmissions : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function formatSubmittedTime(value) {
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+          return "Time unavailable";
+        }
+
+        return new Intl.DateTimeFormat(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(date);
+      }
+
+      function renderSavedSubmissions() {
+        const submissions = getSavedSubmissions()
+          .filter((submission) => submission.name && submission.email && submission.task)
+          .sort((first, second) => {
+            return new Date(second.submittedAt || 0) - new Date(first.submittedAt || 0);
+          });
+
+        submissionList.replaceChildren();
+
+        if (submissions.length === 0) {
+          const emptyState = document.createElement("p");
+          emptyState.className = "submission-empty";
+          emptyState.textContent = "No saved requests yet. Submit the form to see one here.";
+          submissionList.append(emptyState);
+          return;
+        }
+
+        submissions.forEach((submission) => {
+          const article = document.createElement("article");
+          article.className = "submission-card";
+
+          const heading = document.createElement("h3");
+          heading.textContent = submission.name;
+
+          const email = document.createElement("a");
+          email.className = "submission-email";
+          email.href = `mailto:${submission.email}`;
+          email.textContent = submission.email;
+
+          const task = document.createElement("p");
+          task.className = "submission-task";
+          task.textContent = submission.task;
+
+          const submittedAt = document.createElement("time");
+          submittedAt.dateTime = submission.submittedAt || "";
+          submittedAt.textContent = formatSubmittedTime(submission.submittedAt);
+
+          article.append(heading, email, task, submittedAt);
+          submissionList.append(article);
+        });
+      }
+
+      function saveSubmission(data) {
+        const existingSubmissions = getSavedSubmissions();
+        const submission = {
+          ...data,
+          submittedAt: new Date().toISOString(),
+        };
+
+        localStorage.setItem(
+          "taskliftLeads",
+          JSON.stringify([...existingSubmissions, submission])
+        );
+      }
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        clearErrors();
+
+        const formData = new FormData(form);
+        const data = {
+          name: formData.get("name").trim(),
+          email: formData.get("email").trim(),
+          task: formData.get("task").trim(),
+        };
+        const validationErrors = validateForm(data);
+
+        if (Object.keys(validationErrors).length > 0) {
+          Object.entries(validationErrors).forEach(([field, message]) => {
+            errors[field].textContent = message;
+          });
+          statusMessage.textContent = "Fix the highlighted fields before sending.";
+          statusMessage.classList.add("is-error");
+          return;
+        }
+
+        saveSubmission(data);
+        renderSavedSubmissions();
+        form.reset();
+        statusMessage.textContent = "Request saved in this browser for the demo.";
+        statusMessage.classList.add("is-success");
+      });
+
+      renderSavedSubmissions();
+    </script>
+  </body>
+</html>
