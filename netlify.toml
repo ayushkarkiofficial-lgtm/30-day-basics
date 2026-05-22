@@ -1,0 +1,3 @@
+[build]
+  base = "experiments/websites/startup-automation-site"
+  publish = "."
