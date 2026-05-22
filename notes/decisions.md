@@ -57,3 +57,11 @@ Netlify settings: branch `master`, base directory `experiments/websites/startup-
 Alternatives considered: Netlify Drop for a one-time upload, GitHub Pages for static hosting, Vercel for a Git-based static deployment.
 
 Revisit when: The project moves to a framework app, needs environment variables, or the repo branch changes from `master` to `main`.
+
+### User handles Git terminal commands manually
+
+Why: The user wants to build confidence using Git from the terminal directly while Codex focuses on helping with code, docs, explanations, reviews, and command guidance.
+
+Scope: While working in `D:\Claude\30_day_plan`, Codex should not run Git terminal commands unless the user explicitly asks Codex to run one. Codex may still explain Git commands, suggest exact commands for the user to run, interpret command output the user pastes back, review diffs, and recommend what to commit.
+
+Revisit when: The user asks Codex to run Git commands for a specific task or workflow.
