@@ -68,6 +68,32 @@ ayushkarkiofficial-lgtm/30-day-basics
 7. Open the generated public URL.
 8. Save the public URL in `notes/ai-dev-log.md`.
 
+## Pull Request Flow
+
+A pull request is a review step between two Git branches.
+
+For this workspace:
+
+```text
+Base branch: master
+Compare branch: day-6-github-netlify-setup
+```
+
+Plain-English flow:
+
+1. `master` is the stable branch.
+2. A feature branch contains proposed changes.
+3. A pull request asks GitHub to compare the feature branch against `master`.
+4. GitHub shows the changed files, added lines, removed lines, and comments.
+5. After review, merging the pull request copies those branch changes into `master`.
+6. Netlify can then deploy from `master`, or from another branch if configured that way.
+
+Useful rule:
+
+```text
+Work on a branch -> push the branch -> open a pull request -> review -> merge into master.
+```
+
 ## What To Test After Deployment
 
 - Page loads from the public URL.
