@@ -291,7 +291,7 @@ Start **Day 6 - Deploy Publicly** from the Notion AI Builder Version plan.
 
 ## Day 6
 
-Status: Local GitHub remote and baseline commit ready; push blocked by GitHub permissions
+Status: GitHub baseline pushed; pull request branch pushed
 
 ### Goal
 
@@ -309,6 +309,10 @@ Read the progress log and move on from Day 5 into the next documented task.
 - Added a post-deployment manual test checklist.
 - Added the GitHub repo as local `origin`.
 - Created the first local Git commit: `521a2b3 Initialize 30-day plan workspace`.
+- Amended the first local commit to `578e98b Initialize 30-day plan workspace`.
+- Pushed `master` to GitHub as the base branch.
+- Pushed `day-6-github-netlify-setup` to GitHub as the pull request branch.
+- Added a plain-English pull request explanation to the Day 6 deployment plan.
 
 ### What Worked
 
@@ -321,7 +325,7 @@ Read the progress log and move on from Day 5 into the next documented task.
 - Public deployment needs external GitHub and Netlify account access, so Codex cannot fully complete the Netlify connection from the local workspace alone.
 - The Notion connector could not open the linked plan because its MCP server failed during startup.
 - Git initially reported this repo as a dubious ownership directory for the current Windows user. The workspace has now been marked as a safe Git directory.
-- Pushing to GitHub failed because GitHub rejected the current credentials. The machine is authenticated as `InfraWatch68`, which does not have permission to push to `ayushkarkiofficial-lgtm/30-day-basics`.
+- Pushing initially failed because GitHub rejected the current credentials. After `InfraWatch68` was added as a collaborator, the push succeeded.
 
 ### Decisions Made
 
@@ -337,4 +341,4 @@ Prepare this static website for public deployment. Tell me the exact folder to d
 
 ### Next Session
 
-Fix GitHub authentication or grant `InfraWatch68` push access to `ayushkarkiofficial-lgtm/30-day-basics`, rerun `git push -u origin master`, connect Netlify to the repo, then paste the public Netlify URL back into this workspace so it can be logged and reviewed.
+Open a pull request from `day-6-github-netlify-setup` into `master`, review the changed docs, merge it, connect Netlify to the repo, then paste the public Netlify URL back into this workspace so it can be logged and reviewed.
