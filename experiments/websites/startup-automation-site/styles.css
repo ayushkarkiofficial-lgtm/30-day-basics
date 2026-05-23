@@ -86,6 +86,14 @@ a {
   color: var(--accent-dark);
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(31, 111, 91, 0.32);
+  outline-offset: 3px;
+}
+
 .hero,
 .features,
 .contact {
@@ -320,7 +328,13 @@ textarea {
 input:focus,
 textarea:focus {
   border-color: var(--accent);
-  outline: 3px solid rgba(31, 111, 91, 0.18);
+  outline: 3px solid rgba(31, 111, 91, 0.32);
+  outline-offset: 0;
+}
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: #a6382f;
 }
 
 .field-error {
