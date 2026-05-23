@@ -52,6 +52,22 @@ Publish directory: .
 
 If Netlify asks for a framework preset, choose a plain/static site option or leave the preset unconfigured.
 
+The repo also includes this config file at the root:
+
+```text
+netlify.toml
+```
+
+Current config:
+
+```toml
+[build]
+  base = "experiments/websites/startup-automation-site"
+  publish = "."
+```
+
+This gives Netlify the same deployment instructions from the repo itself.
+
 ## Manual Deployment Steps
 
 1. Push the local workspace to GitHub.
@@ -133,8 +149,9 @@ Cloudflare Pages:
 - Good static hosting and custom domains.
 - Usually easiest after Git is working.
 
-## Current Blockers
+## Current Status
 
-- The public Netlify connection requires browser access to the user's Netlify and GitHub accounts.
+- The branch `day-6-github-netlify-setup` has been pushed to GitHub.
+- The branch contains the deployment notes plus the root `netlify.toml` config.
+- The remaining work is browser/account work: review and merge the GitHub pull request, then connect or refresh Netlify so it deploys from `master`.
 - The local repo has been marked as safe for the current Windows user so Git commands can run.
-- Pushing to GitHub is currently blocked because this machine is authenticated to GitHub as `InfraWatch68`, which does not have permission to push to `ayushkarkiofficial-lgtm/30-day-basics`.
