@@ -304,6 +304,7 @@ Read the progress log and move on from Day 5 into the next documented task.
 ### What Was Built
 
 - Added `notes/day-6-deployment-plan.md`.
+- Added `netlify.toml` at the repo root so Netlify can deploy the static site from the correct subfolder.
 - Documented the exact local folder and files needed for deployment.
 - Chose GitHub plus Netlify as the deployment path because this repo will be the source of truth for the 30-day-plan.
 - Added a post-deployment manual test checklist.
@@ -313,12 +314,15 @@ Read the progress log and move on from Day 5 into the next documented task.
 - Pushed `master` to GitHub as the base branch.
 - Pushed `day-6-github-netlify-setup` to GitHub as the pull request branch.
 - Added a plain-English pull request explanation to the Day 6 deployment plan.
+- User staged, committed, and pushed the Netlify config commit manually: `8f6f975 Add Netify build config`.
 
 ### What Worked
 
 - The current Tasklift site is deployment-ready as a static folder.
 - Required deployment files are only `index.html` and `styles.css`.
 - The site can be deployed from GitHub without changing the code.
+- Netlify can read `netlify.toml` instead of relying only on UI build settings.
+- User practiced `git status`, `git add`, `git commit`, and `git push` directly in the terminal.
 
 ### What Confused Me
 
@@ -332,6 +336,7 @@ Read the progress log and move on from Day 5 into the next documented task.
 - Use `https://github.com/ayushkarkiofficial-lgtm/30-day-basics.git` as the GitHub repo for the 30-day-plan.
 - Connect Netlify to the GitHub repo instead of using Netlify Drop.
 - Treat `localStorage` as browser-only demo storage after deployment; it is not shared between visitors.
+- Codex should give Git guidance, but the user runs Git terminal commands manually unless explicitly requested otherwise.
 
 ### Useful Prompts Saved
 
@@ -341,4 +346,10 @@ Prepare this static website for public deployment. Tell me the exact folder to d
 
 ### Next Session
 
-Open a pull request from `day-6-github-netlify-setup` into `master`, review the changed docs, merge it, connect Netlify to the repo, then paste the public Netlify URL back into this workspace so it can be logged and reviewed.
+Open or refresh the pull request from `day-6-github-netlify-setup` into `master`, review the changed docs and `netlify.toml`, merge it, then confirm Netlify deploys from `master`. Paste the public Netlify URL back into this workspace so it can be logged and reviewed.
+
+### Continuation Note
+
+- Reviewed the Day 6 progress log and confirmed the remaining work is PR merge plus Netlify deployment.
+- Updated the Day 6 deployment plan so it no longer says GitHub push is blocked.
+- Updated the website deployment checklist to include reviewing and merging the pull request before connecting Netlify.
