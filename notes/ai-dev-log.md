@@ -353,3 +353,9 @@ Open or refresh the pull request from `day-6-github-netlify-setup` into `master`
 - Reviewed the Day 6 progress log and confirmed the remaining work is PR merge plus Netlify deployment.
 - Updated the Day 6 deployment plan so it no longer says GitHub push is blocked.
 - Updated the website deployment checklist to include reviewing and merging the pull request before connecting Netlify.
+
+### Public Site Audit
+
+- Audited the Netlify preview URL for practical AI-builder issues: clarity, mobile layout, accessibility, interactions, and deployment risk.
+- Implemented safe small source fixes only: stronger keyboard focus states, screen-reader-linked form errors, invalid-field state, first-invalid-field focus, and hero image loading metadata.
+- Left larger follow-ups for a separate pass: real lead capture backend/form service, replacing the external Unsplash dependency with a local asset, and final live mobile/browser testing after Netlify redeploys.
