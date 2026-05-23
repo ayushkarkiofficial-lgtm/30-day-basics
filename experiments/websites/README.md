@@ -108,9 +108,18 @@ Build command: leave blank
 Publish directory: .
 ```
 
+Repo config file:
+
+```text
+netlify.toml
+```
+
+Purpose: tells Netlify to use `experiments/websites/startup-automation-site` as the site folder even though the GitHub repo contains the full 30-day-plan workspace.
+
 Manual public URL checklist:
 
 - [ ] Push the workspace to GitHub.
+- [ ] Review and merge the pull request into `master`.
 - [ ] Connect Netlify to the GitHub repo.
 - [ ] Open the generated public URL.
 - [ ] Confirm the page, image, navigation links, form validation, success state, and saved submissions work.
