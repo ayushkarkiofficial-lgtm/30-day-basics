@@ -49,6 +49,11 @@
           <img
             src="https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1200&q=80"
             alt="Team reviewing work on laptops in a modern office"
+            width="1200"
+            height="800"
+            loading="eager"
+            decoding="async"
+            referrerpolicy="no-referrer"
           >
         </div>
       </section>
@@ -103,18 +108,18 @@
           <form class="contact-form" action="#" method="post" novalidate>
             <label>
               Name
-              <input type="text" name="name" autocomplete="name" required>
-              <span class="field-error" data-error-for="name"></span>
+              <input type="text" name="name" autocomplete="name" aria-describedby="name-error" required>
+              <span class="field-error" id="name-error" data-error-for="name"></span>
             </label>
             <label>
               Email
-              <input type="email" name="email" autocomplete="email" required>
-              <span class="field-error" data-error-for="email"></span>
+              <input type="email" name="email" autocomplete="email" aria-describedby="email-error" required>
+              <span class="field-error" id="email-error" data-error-for="email"></span>
             </label>
             <label>
               Weekly process to review
-              <textarea name="task" rows="5" required></textarea>
-              <span class="field-error" data-error-for="task"></span>
+              <textarea name="task" rows="5" aria-describedby="task-error" required></textarea>
+              <span class="field-error" id="task-error" data-error-for="task"></span>
             </label>
             <p class="form-status" aria-live="polite"></p>
             <button class="button primary" type="submit">Send request</button>
@@ -146,6 +151,9 @@
       function clearErrors() {
         Object.values(errors).forEach((error) => {
           error.textContent = "";
+        });
+        form.querySelectorAll("[aria-invalid]").forEach((field) => {
+          field.removeAttribute("aria-invalid");
         });
         statusMessage.textContent = "";
         statusMessage.className = "form-status";
@@ -267,9 +275,11 @@
         if (Object.keys(validationErrors).length > 0) {
           Object.entries(validationErrors).forEach(([field, message]) => {
             errors[field].textContent = message;
+            form.elements[field].setAttribute("aria-invalid", "true");
           });
           statusMessage.textContent = "Fix the highlighted fields before sending.";
           statusMessage.classList.add("is-error");
+          form.elements[Object.keys(validationErrors)[0]].focus();
           return;
         }
 

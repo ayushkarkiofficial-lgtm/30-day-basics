@@ -1,0 +1,16 @@
+# Environment variables — never commit credentials
+.env
+.env.local
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Dependencies
+node_modules/
+dist/
