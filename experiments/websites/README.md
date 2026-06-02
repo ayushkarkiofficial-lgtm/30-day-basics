@@ -125,3 +125,33 @@ Manual public URL checklist:
 - [ ] Confirm the page, image, navigation links, form validation, success state, and saved submissions work.
 - [ ] Test mobile width.
 - [ ] Save the public URL in `notes/ai-dev-log.md`.
+
+## Tasklift MVP App
+
+Folder: `experiments/websites/tasklift-mvp-app/`
+
+Goal: Start Week 2 with one stable app stack for the MVP instead of switching tools.
+
+Chosen stack:
+
+```text
+React + Vite
+Tailwind CSS
+Supabase later
+Netlify
+n8n/Make/Zapier later
+```
+
+What exists now:
+
+- App shell with intake, review queue, and stack sections.
+- Demo data only.
+- No database, auth, protected routes, or automation integrations yet.
+
+Local commands:
+
+```powershell
+cd experiments\websites\tasklift-mvp-app
+npm install
+npm run dev
+```
