@@ -52,6 +52,22 @@ Publish directory: .
 
 If Netlify asks for a framework preset, choose a plain/static site option or leave the preset unconfigured.
 
+The repo also includes this config file at the root:
+
+```text
+netlify.toml
+```
+
+Current config:
+
+```toml
+[build]
+  base = "experiments/websites/startup-automation-site"
+  publish = "."
+```
+
+This gives Netlify the same deployment instructions from the repo itself.
+
 ## Manual Deployment Steps
 
 1. Push the local workspace to GitHub.
@@ -67,6 +83,32 @@ ayushkarkiofficial-lgtm/30-day-basics
 6. Deploy the site.
 7. Open the generated public URL.
 8. Save the public URL in `notes/ai-dev-log.md`.
+
+## Pull Request Flow
+
+A pull request is a review step between two Git branches.
+
+For this workspace:
+
+```text
+Base branch: master
+Compare branch: day-6-github-netlify-setup
+```
+
+Plain-English flow:
+
+1. `master` is the stable branch.
+2. A feature branch contains proposed changes.
+3. A pull request asks GitHub to compare the feature branch against `master`.
+4. GitHub shows the changed files, added lines, removed lines, and comments.
+5. After review, merging the pull request copies those branch changes into `master`.
+6. Netlify can then deploy from `master`, or from another branch if configured that way.
+
+Useful rule:
+
+```text
+Work on a branch -> push the branch -> open a pull request -> review -> merge into master.
+```
 
 ## What To Test After Deployment
 
@@ -107,8 +149,9 @@ Cloudflare Pages:
 - Good static hosting and custom domains.
 - Usually easiest after Git is working.
 
-## Current Blockers
+## Current Status
 
-- The public Netlify connection requires browser access to the user's Netlify and GitHub accounts.
+- The branch `day-6-github-netlify-setup` has been pushed to GitHub.
+- The branch contains the deployment notes plus the root `netlify.toml` config.
+- The remaining work is browser/account work: review and merge the GitHub pull request, then connect or refresh Netlify so it deploys from `master`.
 - The local repo has been marked as safe for the current Windows user so Git commands can run.
-- Pushing to GitHub is currently blocked because this machine is authenticated to GitHub as `InfraWatch68`, which does not have permission to push to `ayushkarkiofficial-lgtm/30-day-basics`.
