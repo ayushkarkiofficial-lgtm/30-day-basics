@@ -121,6 +121,40 @@ Alternatives considered: Hardcoding the URL and anon key directly in the Supabas
 
 Revisit when: The project moves to a real production environment with proper secrets management (e.g. Netlify environment variables, Supabase Vault, or a backend proxy).
 
+### Use Make (make.com) for the first form-to-email automation
+
+Why: Make has the simplest free setup for a webhook-triggered email — create a Custom
+Webhook trigger, point the app's `fetch` POST at it, add a Send-an-Email action. No code
+to host, no server to manage.
+
+Scope: Day 16's automation. The React app fires a fire-and-forget `fetch` POST to the
+Make webhook after a successful Supabase insert. Future automations (Days 17–21) can
+add more Make modules or switch to n8n if self-hosting is wanted.
+
+Alternatives considered: n8n (more powerful, but needs hosting), Zapier (fewer free ops),
+or a Supabase edge function (more code). Make wins on lowest setup cost for learning.
+
+Revisit when: An automation needs logic Make can't do cleanly, or self-hosting/n8n is
+preferred for cost or control.
+
+### Embed the Make webhook URL directly in frontend code
+
+Why: A webhook URL is a public endpoint, not a secret credential like the Supabase
+service key. It is safe to commit. The URL itself is the only "secret" — anyone who
+knows it can trigger the scenario — so the mitigation is rotation, not hiding.
+
+Scope: `MAKE_WEBHOOK_URL` is a `const` at the top of `App.jsx`. Unlike the Supabase
+keys (which live in `.env` / Netlify env vars), this URL is hardcoded and committed.
+Consequence: once deployed, the live Netlify site also fires the webhook, so real
+submissions there send a real email.
+
+Alternatives considered: Storing it as a `VITE_` env var like the Supabase keys. Not
+necessary — it's not a credential — but would be the move if we ever wanted to swap
+URLs per environment without a code change.
+
+Revisit when: The URL is leaked/abused (rotate it in Make), or we need different
+webhook URLs for local vs production.
+
 ---
 
 ## AI Collaboration Rules (Claude + Codex shared workspace)

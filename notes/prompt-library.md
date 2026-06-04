@@ -142,3 +142,20 @@ Add update and delete to this Supabase-connected React app. Keep all
 Supabase logic in App.jsx, pass handlers as props, and explain .eq(),
 .map() vs .filter(), and why UPDATE needs .select() but DELETE does not.
 ```
+
+## Make Webhook Email Automation Prompt
+
+```text
+Connect this form to a Make webhook so it sends an email on submit. Walk me
+through creating the Make account and scenario step by step, and explain why
+the webhook must receive one real payload before I can map the email fields.
+```
+
+## Push vs Pull Concept Prompt
+
+```text
+Explain the difference between a webhook and an API call in plain English.
+Tell me who initiates each, which direction the data flows, why a browser
+can't receive a webhook, and what tool keeps a UI live when the database
+changes. Use everyday metaphors.
+```

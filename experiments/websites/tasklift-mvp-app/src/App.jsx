@@ -30,6 +30,13 @@ import { computeMetrics } from "./lib/metrics.js";
 // Defined as a constant so it is never mistyped in two places.
 const TABLE = "First_app_data";
 
+// MAKE WEBHOOK URL
+// Paste your Make Custom Webhook URL here after creating the scenario.
+// This is a public URL — it is safe to embed in frontend code.
+// The URL itself is the secret: anyone who knows it can trigger the scenario.
+// Rotate it in Make if it is ever leaked.
+const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/5p0oelowizzufyugez0xb1c73h2duu75";
+
 function App() {
   // queueItems — the list of rows fetched from Supabase.
   // Starts as an empty array. Supabase fills it after the first fetch.
@@ -129,6 +136,31 @@ function App() {
 
     // Prepend the saved row (with real UUID + created_at) to the list
     setQueueItems((current) => [data, ...current]);
+
+    // NOTIFY MAKE — fire-and-forget webhook call
+    //
+    // WHY fire-and-forget (no await, no error blocking the UI)?
+    // The form submission already succeeded — the row is in Supabase.
+    // A failed notification should not undo the user's action or show
+    // an error. We log failures quietly and handle retries on Day 21.
+    //
+    // WHY only call if MAKE_WEBHOOK_URL is set?
+    // Keeps local dev working without a real Make URL. Remove this guard
+    // once the URL is pasted in above.
+    if (MAKE_WEBHOOK_URL) {
+      fetch(MAKE_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: data.id,
+          label: data.label,
+          owner: data.owner,
+          risk: data.risk,
+          status: data.status,
+          created_at: data.created_at,
+        }),
+      }).catch((err) => console.warn("Make webhook failed:", err.message));
+    }
   }
 
   // UPDATE STATUS IN SUPABASE
