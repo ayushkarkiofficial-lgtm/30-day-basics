@@ -755,3 +755,195 @@ test checklist.
 
 Open the Notion AI Builder plan and start Day 14:
 Deploy the MVP and write what works, what breaks, and what is risky.
+
+## Day 14
+
+Status: Complete
+
+### Goal
+
+Deploy the Tasklift MVP to Netlify, verify everything works live, and document what works, what breaks, and what is risky.
+
+### What I Asked AI To Do
+
+Review the progress log and continue from Day 13.
+
+### What Was Built
+
+- All Days 7–13 commits merged to `master` and pushed to GitHub.
+- Netlify connected to `master`, base dir `experiments/websites/tasklift-mvp-app`, with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` set as env vars.
+- Live URL confirmed: https://snazzy-conkies-2372cf.netlify.app/
+- All components verified live: dashboard, intake form, review queue, completed automations, stack section.
+- Added `notes/day-14-deploy-review.md` — what works, what breaks, what is risky, key lesson learned, and a manual retest checklist.
+
+### What Worked
+
+- Every Supabase CRUD operation works in production (SELECT, INSERT, UPDATE, DELETE).
+- Dashboard counters update live after status changes.
+- Completed Automations section populates correctly from Supabase data.
+- Netlify build pipeline reads Vite env vars at build time and bundles them into the output correctly.
+
+### What Breaks or Could Break
+
+- No error UI — if Supabase is down the app shows a blank queue with no message.
+- No loading state — the queue appears empty until the fetch completes.
+- No auth — any visitor can insert, update, or delete records.
+- No query limit — the SELECT fetches all rows with no pagination.
+
+### Key Lesson Learned
+
+> **Vite bakes env vars into the bundle at build time.**
+> Adding env vars to Netlify after the first build does nothing until you trigger a redeploy.
+> Always trigger a fresh Netlify build after changing env vars, and verify the app loads data before considering the deploy complete.
+
+### What Is Risky
+
+- Renaming the Supabase table or column names breaks all queries.
+- Changing Netlify env var names breaks the build silently (blank screen, no error message).
+- Removing any anon RLS policy breaks the corresponding operation for all visitors.
+
+### Useful Prompts Saved
+
+```text
+Deploy this Vite + React app to Netlify. Explain what env vars need to be set,
+what happens if they are missing, how to verify the deploy worked, and what risks
+exist in production that didn't exist in local dev.
+```
+
+### Next Session
+
+Open the Notion AI Builder plan and start Day 15.
+
+## Day 15
+
+Status: Complete
+
+### Goal
+
+Build the automation mental model before wiring any real automation into Tasklift.
+Understand the 7 parts every automation shares: trigger, input, decision, action, log,
+failure handling, and human review.
+
+### What I Asked AI To Do
+
+Review the progress log and continue from Day 14.
+
+### What Was Built
+
+- Added `notes/day-15-automation-mental-model.md` with the full 7-part mental model,
+  a Tasklift automation map, key pre-build questions, and the Week 3 roadmap.
+
+### The Automation Mental Model
+
+Every automation — n8n, Make, Zapier, custom code — has the same 7 parts:
+
+| Part | What it does |
+|---|---|
+| Trigger | What starts the automation (form submit, schedule, webhook, row change) |
+| Input | The data payload the trigger carries |
+| Decision | Conditions that must be true before the action runs |
+| Action | The actual work (send email, write to Notion, call API) |
+| Log | The record that proves the automation ran |
+| Failure Handling | What happens when the action fails (retry, alert, halt) |
+| Human Review | Where a human must approve before the automation continues |
+
+### Tasklift Automation Map (Form Submission)
+
+- **Trigger:** Intake form submit → Supabase INSERT
+- **Input:** `process_name`, `owner`, `frequency`, `risk_level`
+- **Decision:** If `risk_level = High` → escalate; else → add normally
+- **Action:** Email owner / create Notion page / post Slack alert
+- **Log:** Record in `automation_logs` table
+- **Failure:** Mark row `notify_failed`, retry on next cron
+- **Human Review:** ReviewQueue — status moved manually before archiving
+
+### Why This Mental Model Matters
+
+Without it, automations fire on bad data, fail invisibly, cause silent damage, and
+act without consent. With it, you can describe any automation in plain English before
+touching a tool, and debug any automation by asking "which of the 7 parts broke?"
+
+### Decisions Made
+
+- No code built today — Day 15 is deliberately conceptual groundwork.
+- The 7-part model and Tasklift automation map are the reference for Days 16–21.
+
+### Useful Prompts Saved
+
+```text
+Before we build this automation, let's map it. What is the trigger, input, decision,
+action, log, failure handling, and human review point? Write the map in plain English
+before touching any code or tool.
+```
+
+### Next Session
+
+Open the Notion AI Builder plan and start Day 16:
+Form submission to email notification.
+
+## Day 16
+
+Status: Complete
+
+### Goal
+
+Build the first real automation: when someone submits the Tasklift intake form,
+send an email notification automatically. Wire the React app to Make (make.com)
+via a webhook.
+
+### What I Asked AI To Do
+
+Review the progress log and continue from Day 15. Guide the Make account setup
+and scenario build step by step.
+
+### What Was Built
+
+- Created a free Make account and a scenario: **Custom Webhook trigger → Send an Email action**.
+- Pasted the Make webhook URL into `MAKE_WEBHOOK_URL` (line 38 of
+  `experiments/websites/tasklift-mvp-app/src/App.jsx`).
+- The webhook-firing code was already in place from earlier: a fire-and-forget
+  `fetch()` POST in `handleAddCandidate` that sends `id`, `label`, `owner`,
+  `risk`, `status`, `created_at` as JSON after the Supabase insert succeeds.
+- In Make: captured the payload structure (6 fields), added the Email module,
+  mapped all fields into the subject and body, connected an email account,
+  and turned the scenario ON.
+
+### What Worked
+
+- End-to-end test succeeded: submit form → row saved to Supabase → webhook fired
+  → Make ran → email arrived with all fields filled in.
+- `npm test` (5/5) and `npm run build` both pass.
+
+### What I Learned — Webhook Data-First Workflow
+
+**Make can't show field labels until it receives one real payload.**
+The Custom Webhook "learns" the data shape from the first POST it sees. So the
+build order is: paste URL → put webhook in "listening" mode → submit one real
+test form → Make detects the 6 fields → THEN map them into the email.
+You can't map fields that Make hasn't seen yet.
+
+**Why fire-and-forget (no await)?**
+The form submission already succeeded — the row is in Supabase. A failed
+notification should not undo the user's action or block the UI. Failures are
+logged quietly with `.catch()`; retries are a Day 21 concern.
+
+### Decisions Made
+
+- The webhook URL is embedded directly in frontend code. This is acceptable:
+  it is a public endpoint, not a secret credential. If leaked, rotate it in Make.
+- Used Make instead of n8n/Zapier for the first automation — easiest free setup.
+- No decision/failure-handling step yet — Day 16 is the happy path only.
+  Conditional routing (risk = High) and retries come in Days 20–21.
+
+### Useful Prompts Saved
+
+```text
+Connect this form to a Make webhook so it sends an email on submit. Walk me
+through creating the Make account and scenario step by step, and explain why
+the webhook must receive one real payload before I can map the email fields.
+```
+
+### Next Session
+
+Open the Notion AI Builder plan and start Day 17:
+Write form submissions to Notion / Sheets / CRM on submit.
