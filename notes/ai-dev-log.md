@@ -947,3 +947,41 @@ the webhook must receive one real payload before I can map the email fields.
 
 Open the Notion AI Builder plan and start Day 17:
 Write form submissions to Notion / Sheets / CRM on submit.
+
+## Day 17
+
+Status: In Progress
+
+### Goal
+
+Add a second automation action: when the Tasklift intake form is submitted, also
+create a row in a Notion database (alongside the existing Make email notification).
+
+### What I Asked AI To Do
+
+Review progress and continue from Day 16. Add Notion as a second action in Make.
+
+### What Was Done So Far
+
+- Committed and pushed all Day 16 work (App.jsx + notes) to master. Netlify redeployed.
+- Added Day 16 automation documentation to the "Make Automation" Notion page (33 blocks)
+  via the Notion API using `scripts/notion_add_make.py`.
+- Created a "Tasklift Submissions" Notion database (inside the 30-day AI Builder plan page)
+  via the Notion API using `scripts/notion_create_submissions_db.py`.
+  - Database ID: 37532f18-146f-8185-920a-f804fbf1ab26
+  - URL: https://app.notion.com/p/37532f18146f8185920af804fbf1ab26
+  - Columns: Name (title), Owner, Risk (select), Status (select), Submitted At (date), Supabase ID
+
+### What Is Left for Day 17
+
+Wire the Make Notion module — done entirely in Make, no new React code needed:
+1. Open the Day 16 scenario in Make. Turn it OFF to edit.
+2. Add a Notion module after the email module: Notion → Create a Database Item.
+3. Connect Make to Notion via OAuth. Select the "Tasklift Submissions" database.
+4. Map fields: label → Name, owner → Owner, risk → Risk, status → Status,
+   created_at → Submitted At, id → Supabase ID.
+5. Turn scenario ON and submit a test form. Verify email + Notion row both appear.
+
+### Next Session
+
+Continue Day 17: open Make and wire the Notion module as described above.
