@@ -1038,3 +1038,42 @@ length, map, and join.
 
 Open the Notion AI Builder plan and start Day 19:
 File upload to processing workflow.
+
+## Day 19
+
+Status: Design approved — implementation not started.
+
+### Goal
+
+Standalone file-upload panel in the Tasklift app: upload a PDF/PNG/JPG (≤10 MB) to a
+private Supabase Storage bucket, save a metadata row, fire a Make webhook, and show a
+visible processing status. (Notion plan: "File upload to processing workflow.")
+
+### What Was Done This Session
+
+- Pulled the exact Day 19 spec from the Notion plan via `scripts/notion_fetch_day.py`
+  (reads the Notion token from `D:\Claude\AI_optimization\.env`, no hardcoded secret).
+- Brainstormed the full design and got approval on all 5 sections.
+- Wrote the spec: `docs/superpowers/specs/2026-06-05-day-19-file-upload-design.md`.
+
+### Design Decisions (see spec for detail)
+
+- **Approach A:** real `uploaded_files` metadata table (mirrors the `First_app_data`
+  mental model) + bytes in a **private** Storage bucket `uploads`.
+- Client validation = UX only; **bucket-level MIME/size limits + RLS are the real
+  enforcement.** This is the "files are risky" security lesson.
+- Upload order: bytes → metadata row → Make webhook (fire-and-forget, Day 16 pattern).
+- Status: `Processing` → manual **Mark done** → `Done` (the human review point).
+- View files via short-lived (60s) **signed URLs** because the bucket is private.
+- Testing taxonomy clarified: only the `validateFile()` Vitest tests are **unit** tests;
+  the 7-row manual table is **manual/integration** (each crosses a boundary). Unit test
+  proves the rule; manual test 3 proves the rule is wired into the UI.
+
+### Next Session
+
+1. User reviews the spec (`docs/superpowers/specs/2026-06-05-day-19-file-upload-design.md`).
+2. Invoke `writing-plans` to turn the spec into a step-by-step implementation plan
+   (Supabase setup steps for the user + React build steps for Claude + Vitest tests).
+3. User does the hands-on Supabase setup: create `uploaded_files` table, private
+   `uploads` bucket, RLS policies, and a new Make Webhook→email scenario.
+4. Build `lib/fileUpload.js`, `FileUpload.jsx`, wire into `App.jsx`.
