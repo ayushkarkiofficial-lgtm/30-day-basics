@@ -950,38 +950,91 @@ Write form submissions to Notion / Sheets / CRM on submit.
 
 ## Day 17
 
-Status: In Progress
+Status: Complete
 
 ### Goal
 
 Add a second automation action: when the Tasklift intake form is submitted, also
 create a row in a Notion database (alongside the existing Make email notification).
 
-### What I Asked AI To Do
+### What Was Built
 
-Review progress and continue from Day 16. Add Notion as a second action in Make.
+- Extended the Day 16 Make scenario to 3 modules: Webhook → Gmail → Notion "Create a Database Item (Legacy)".
+- Created "Tasklift Submissions" Notion database via API script (`scripts/notion_create_submissions_db.py`).
+- Connected Make to Notion using Internal Integration Token (not OAuth).
+- Mapped 6 fields: label→Name, owner→Owner, risk→Risk, status→Status, created_at→Submitted At, id→Supabase ID.
+- End-to-end test passed: form submit → email received → Notion row created.
 
-### What Was Done So Far
+### What I Learned — Key Gotchas
 
-- Committed and pushed all Day 16 work (App.jsx + notes) to master. Netlify redeployed.
-- Added Day 16 automation documentation to the "Make Automation" Notion page (33 blocks)
-  via the Notion API using `scripts/notion_add_make.py`.
-- Created a "Tasklift Submissions" Notion database (inside the 30-day AI Builder plan page)
-  via the Notion API using `scripts/notion_create_submissions_db.py`.
-  - Database ID: 37532f18-146f-8185-920a-f804fbf1ab26
-  - URL: https://app.notion.com/p/37532f18146f8185920af804fbf1ab26
-  - Columns: Name (title), Owner, Risk (select), Status (select), Submitted At (date), Supabase ID
-
-### What Is Left for Day 17
-
-Wire the Make Notion module — done entirely in Make, no new React code needed:
-1. Open the Day 16 scenario in Make. Turn it OFF to edit.
-2. Add a Notion module after the email module: Notion → Create a Database Item.
-3. Connect Make to Notion via OAuth. Select the "Tasklift Submissions" database.
-4. Map fields: label → Name, owner → Owner, risk → Risk, status → Status,
-   created_at → Submitted At, id → Supabase ID.
-5. Turn scenario ON and submit a test form. Verify email + Notion row both appear.
+- **Notion's `Name`/title field requires Value Type "Title"** in Make, not Text or Rich Text.
+  Using Text causes a [400] validation error listing every possible type.
+- **Gmail [403] insufficient scopes** = the Gmail connection was created with limited OAuth permissions.
+  Fix: add a new Gmail connection and grant all requested Google permissions during OAuth.
+- **Notion integration must be explicitly shared with each database** via the Connections menu
+  (••• → Connections → add integration). Integrations are sandboxed by default.
+- **Database ID vs View ID in Notion URL:** the ID before `?v=` is the database ID; after `?v=` is the view ID.
+  Only the database ID goes into Make.
 
 ### Next Session
 
-Continue Day 17: open Make and wire the Notion module as described above.
+Start Day 18: Scheduled daily digest.
+
+## Day 18
+
+Status: Complete
+
+### Goal
+
+Build a scheduled daily digest: Make queries Supabase at 8pm every day and sends
+a summary email of that day's submissions.
+
+### What Was Built
+
+- Cloned the Day 16/17 Make scenario. Replaced the webhook trigger with an HTTP module.
+- Set the scenario schedule to Daily at 8pm Asia/Kathmandu time (scenario settings → clock icon).
+- HTTP module: GET request to Supabase REST API with `?created_at=gte.{{formatDate(now; "YYYY-MM-DD")}}` filter.
+- Gmail module updated with digest format using `length(1.data)`, `map(1.data; "label")`, and `join()`.
+- End-to-end test passed: scenario ran → Supabase returned 2 today's rows → one digest email sent.
+- Added `notes/day-18-scheduled-digest.md`.
+
+### What I Learned
+
+**Event-driven vs time-driven:** Days 16–17 fired on form submit. Day 18 fires on a clock schedule.
+The schedule is not a module — it is a scenario-level setting.
+
+**Pulling data from Supabase in Make:**
+- URL: `https://<project>.supabase.co/rest/v1/<table>?field=gte.value`
+- Two required headers: `apikey` (identifies project) + `Authorization: Bearer <key>` (proves role).
+- Auth type in Make: None — headers handle it.
+- Parse response: Yes — decodes JSON so Make can use the fields.
+
+**Array functions for digest email:**
+- `length(1.data)` — count of rows returned
+- `map(1.data; "label")` — extract one field from every item
+- `join(...; "\n")` — turn the array into a line-by-line string
+- Without these, you can't turn a list of rows into one readable email.
+
+**Why one email and not many:** HTTP returned all rows as one bundle (a `data` array inside
+Bundle 1). Gmail ran once because there was one bundle. If data arrived as separate bundles
+(e.g. via an iterator), Gmail would run once per bundle — producing one email per row.
+
+### Decisions Made
+
+- Digest runs at 8pm Kathmandu time daily — arbitrary choice, easy to change in schedule settings.
+- No Notion module added to this scenario — digest is email-only (adding Notion log is a Day 21 concern).
+- No empty-state handling yet — if zero rows today, the email sends with count = 0.
+
+### Useful Prompts Saved
+
+```text
+Build a Make scenario that queries Supabase on a daily schedule and sends a digest email.
+Explain the difference between a webhook trigger and a schedule trigger, how to call the
+Supabase REST API with headers, and how to turn an array of rows into one email using
+length, map, and join.
+```
+
+### Next Session
+
+Open the Notion AI Builder plan and start Day 19:
+File upload to processing workflow.
