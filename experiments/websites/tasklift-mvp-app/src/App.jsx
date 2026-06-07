@@ -21,9 +21,11 @@ import CompletedAutomations from "./components/CompletedAutomations.jsx";
 import ReviewQueue from "./components/ReviewQueue.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import StackSection from "./components/StackSection.jsx";
+import FileUpload from "./components/FileUpload.jsx";
 import { stackPieces } from "./data/demoData.js";
 import { supabase } from "./lib/supabase.js";
 import { computeMetrics } from "./lib/metrics.js";
+import { uploadFile } from "./lib/fileUpload.js";
 
 // TABLE NAME
 // The Supabase table that stores review queue items.
@@ -37,10 +39,20 @@ const TABLE = "First_app_data";
 // Rotate it in Make if it is ever leaked.
 const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/5p0oelowizzufyugez0xb1c73h2duu75";
 
+// MAKE FILE WEBHOOK URL
+// Separate Make scenario for file uploads (Task 0, step 5). Same fire-and-forget
+// pattern as MAKE_WEBHOOK_URL. Paste the new scenario's webhook URL here.
+const MAKE_FILE_WEBHOOK_URL = "PASTE_FILE_WEBHOOK_URL_HERE";
+
 function App() {
   // queueItems — the list of rows fetched from Supabase.
   // Starts as an empty array. Supabase fills it after the first fetch.
   const [queueItems, setQueueItems] = useState([]);
+
+  // uploadedFiles — the list of rows from the uploaded_files table.
+  // Same ownership pattern as queueItems: App owns the data + Supabase calls,
+  // FileUpload just renders what it's given.
+  const [uploadedFiles, setUploadedFiles] = useState([]);
 
   const activeItems = queueItems.filter((item) => item.status !== "Completed");
   const completedItems = queueItems.filter((item) => item.status === "Completed");
@@ -86,6 +98,26 @@ function App() {
   }, []);
   // [] means: run this effect once, when the component first mounts.
   // No dependencies = never re-run automatically.
+
+  // FETCH UPLOADED FILES ON FIRST LOAD
+  // A second, independent effect — newest files first — so the list
+  // survives a page refresh (manual test 7).
+  useEffect(() => {
+    async function fetchFiles() {
+      const { data, error } = await supabase
+        .from("uploaded_files")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Supabase file fetch error:", error.message);
+        return;
+      }
+      setUploadedFiles(data);
+    }
+
+    fetchFiles();
+  }, []);
 
   // SUMMARY METRICS
   // Same as before — computed from queueItems.
@@ -163,6 +195,77 @@ function App() {
     }
   }
 
+  // HANDLE A FILE UPLOAD
+  //
+  // Called by FileUpload after client validation passes. Runs the
+  // Storage+metadata sequence (uploadFile), prepends the saved row,
+  // then fires the Make webhook fire-and-forget (Day 16 pattern).
+  // Returns { ok, error } so the panel can show an inline message.
+  async function handleFileUploaded(file) {
+    const { row, error } = await uploadFile(supabase, file);
+
+    if (error) {
+      return { ok: false, error };
+    }
+
+    setUploadedFiles((current) => [row, ...current]);
+
+    if (MAKE_FILE_WEBHOOK_URL && MAKE_FILE_WEBHOOK_URL !== "PASTE_FILE_WEBHOOK_URL_HERE") {
+      fetch(MAKE_FILE_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: row.id,
+          file_name: row.file_name,
+          file_type: row.file_type,
+          file_size: row.file_size,
+          file_path: row.file_path,
+          created_at: row.created_at,
+        }),
+      }).catch((err) => console.warn("Make file webhook failed:", err.message));
+    }
+
+    return { ok: true, error: "" };
+  }
+
+  // MARK A FILE DONE
+  // The human-review point from the Day 15 automation mental model.
+  // Same UPDATE-then-replace shape as handleStatusChange.
+  async function handleMarkDone(id) {
+    const { data, error } = await supabase
+      .from("uploaded_files")
+      .update({ status: "Done" })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Supabase file update error:", error.message);
+      return;
+    }
+
+    setUploadedFiles((current) =>
+      current.map((file) => (file.id === id ? data : file))
+    );
+  }
+
+  // VIEW A FILE
+  // The bucket is private, so we mint a short-lived (60s) signed URL and
+  // open it in a new tab. Short expiry is the concrete "files are risky"
+  // lesson — the link is dead a minute later.
+  async function handleViewFile(filePath) {
+    const { data, error } = await supabase.storage
+      .from("uploads")
+      .createSignedUrl(filePath, 60);
+
+    if (error) {
+      console.error("Signed URL error:", error.message);
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank", "noopener");
+  }
+
   // UPDATE STATUS IN SUPABASE
   //
   // Called when the user clicks a status button in the Actions column.
@@ -231,6 +334,13 @@ function App() {
           <HeroPanel />
           <DashboardSummary metrics={summaryMetrics} />
           <IntakeForm onAddCandidate={handleAddCandidate} />
+
+          <FileUpload
+            files={uploadedFiles}
+            onUpload={handleFileUploaded}
+            onMarkDone={handleMarkDone}
+            onView={handleViewFile}
+          />
 
           {/* Show a loading message while the first fetch is in progress.
               Once isLoading is false, render the actual queue. */}
