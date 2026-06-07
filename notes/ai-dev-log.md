@@ -1041,7 +1041,8 @@ File upload to processing workflow.
 
 ## Day 19
 
-Status: Design approved — implementation not started.
+Status: Built & wired — core feature verified working (upload → Storage → metadata table).
+Make email send deferred (Gmail scope issue, same proven step as Days 16–18).
 
 ### Goal
 
@@ -1077,3 +1078,42 @@ visible processing status. (Notion plan: "File upload to processing workflow.")
 3. User does the hands-on Supabase setup: create `uploaded_files` table, private
    `uploads` bucket, RLS policies, and a new Make Webhook→email scenario.
 4. Build `lib/fileUpload.js`, `FileUpload.jsx`, wire into `App.jsx`.
+
+### Session 2 — Implementation (executed the plan inline on master, TDD)
+
+Built all 6 code tasks from `docs/superpowers/plans/2026-06-06-day-19-file-upload.md`:
+
+- `lib/fileUpload.js` — `validateFile()` (pure, 8 Vitest tests, TDD red→green) +
+  `uploadFile()` Storage-then-metadata sequence helper.
+- `components/FileUpload.jsx` — standalone panel (file input, inline messages,
+  file-list rows with status badges, View + Mark done buttons).
+- `App.jsx` — `uploadedFiles` state, second fetch effect, three handlers
+  (`handleFileUploaded` / `handleMarkDone` / `handleViewFile`), panel rendered after
+  IntakeForm. Real Make file-webhook URL wired in.
+- `notes/day-19-file-upload.md` — risks & lessons.
+- Build clean, 13/13 tests pass.
+
+User did the hands-on infra: `uploaded_files` table + RLS, private `uploads` bucket
+(MIME + 10 MB limits), `storage.objects` anon insert/select policies, new Make
+Webhook→Gmail scenario.
+
+### Lessons this session
+
+- **Bucket name casing is load-bearing.** Storage "policies" are just RLS on the
+  `storage.objects` table; `bucket_id = '...'` is a plain string match (not a FK), so
+  `Uploads` ≠ `uploads`. A casing mismatch fails *silently* (permission denied, no
+  helpful error). Bucket name = policy `bucket_id` = code `BUCKET` constant, exactly.
+- **Mailhook ≠ webhook.** Make's Mailhook gives an email address (`x@hook…`) you *email*
+  to trigger; a Custom webhook gives an `https://hook…` URL you *POST* to. App code does
+  an HTTP POST, so it needs the webhook URL. The `@` is the tell.
+- **`403 insufficient scopes` again (Day 17 redux).** The reused Gmail connection lacked
+  the send scope (fallout from the Google Restricted OAuth `invalid_client` error). Fix
+  = point the module at the proven full-scope connection, or re-auth granting all Gmail
+  permissions. Webhook is fire-and-forget, so this never blocked the app.
+
+### Verified
+
+- File rows land in the Supabase `uploaded_files` table on upload, status `Processing`. ✅
+- Make scenario fires (Operation 1 ran) — webhook chain works end-to-end up to Gmail. ✅
+- Deferred (user's call, not a Day 20/21 dependency): the Gmail send step + full Task 7
+  browser sweep (View signed URL / Mark done / refresh persistence).
