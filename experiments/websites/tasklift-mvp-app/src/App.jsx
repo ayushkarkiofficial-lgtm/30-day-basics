@@ -42,7 +42,7 @@ const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/5p0oelowizzufyugez0xb1c73h2d
 // MAKE FILE WEBHOOK URL
 // Separate Make scenario for file uploads (Task 0, step 5). Same fire-and-forget
 // pattern as MAKE_WEBHOOK_URL. Paste the new scenario's webhook URL here.
-const MAKE_FILE_WEBHOOK_URL = "PASTE_FILE_WEBHOOK_URL_HERE";
+const MAKE_FILE_WEBHOOK_URL = "https://hook.eu1.make.com/ck7i2wn3culftdlaokcf7bm2pth5r426";
 
 function App() {
   // queueItems — the list of rows fetched from Supabase.
