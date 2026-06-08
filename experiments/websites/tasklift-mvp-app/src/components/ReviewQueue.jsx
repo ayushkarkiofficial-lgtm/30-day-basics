@@ -1,3 +1,7 @@
+import { Fragment } from "react";
+
+import { getAiSuggestion } from "../lib/aiSuggestion.js";
+
 // ReviewQueue.jsx
 // This component receives `items` from App.jsx through "props" (the function argument).
 // It does NOT own or manage the data — App.jsx does. This separation means:
@@ -85,7 +89,90 @@ function ActionCell({ item, onStatusChange, onDelete }) {
   );
 }
 
-function ReviewQueue({ items, onStatusChange, onDelete }) {
+// SuggestionRow renders, beneath a queue row, the AI's pending suggestion and
+// the human Approve/Reject controls. It renders nothing unless the row is in
+// the "Pending" AI state (getAiSuggestion returns null otherwise). Once a human
+// approves/rejects, the row's ai_status changes and this returns null again —
+// replaced by a small chip shown inline (see below).
+function SuggestionRow({ item, onApprove, onReject }) {
+  const suggestion = getAiSuggestion(item);
+
+  // Already decided by a human — show a status chip, no buttons.
+  if (item.ai_status === "Approved" || item.ai_status === "Rejected") {
+    const chipStyle =
+      item.ai_status === "Approved"
+        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+        : "bg-red-50 text-red-700 border-red-200";
+    return (
+      <tr className="border-b border-line last:border-0">
+        <td className="pb-4 pl-4 text-xs text-muted" colSpan={5}>
+          <span className={`inline-block rounded-md border px-2 py-0.5 font-bold ${chipStyle}`}>
+            AI suggestion {item.ai_status.toLowerCase()}
+          </span>
+        </td>
+      </tr>
+    );
+  }
+
+  // Not processed by the AI yet, or no suggestion to show.
+  if (!suggestion) {
+    return null;
+  }
+
+  return (
+    <tr className="border-b border-line last:border-0">
+      <td className="pb-4 pl-4" colSpan={5}>
+        <div className="rounded-md border border-dashed border-accent/40 bg-accent/5 p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-extrabold uppercase text-accent">
+              AI suggestion
+            </span>
+            {suggestion.category ? (
+              <Badge
+                label={suggestion.category}
+                styleClass="bg-indigo-50 text-indigo-700 border-indigo-200"
+              />
+            ) : null}
+            {suggestion.priority ? (
+              <Badge
+                label={`Priority: ${suggestion.priority}`}
+                styleClass={
+                  riskStyle[suggestion.priority] ??
+                  "bg-gray-50 text-gray-700 border-gray-200"
+                }
+              />
+            ) : null}
+            {suggestion.needsReview ? (
+              <Badge
+                label="Needs review"
+                styleClass="bg-amber-50 text-amber-700 border-amber-200"
+              />
+            ) : null}
+          </div>
+
+          <p className="mt-2 text-sm text-ink">{suggestion.summary}</p>
+
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => onApprove(item.id)}
+              className="rounded border border-emerald-300 px-3 py-1 text-xs font-bold text-emerald-700 hover:border-emerald-500 hover:text-emerald-900 transition-colors"
+            >
+              Approve
+            </button>
+            <button
+              onClick={() => onReject(item.id)}
+              className="rounded border border-red-200 px-3 py-1 text-xs font-bold text-red-600 hover:border-red-400 hover:text-red-800 transition-colors"
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function ReviewQueue({ items, onStatusChange, onDelete, onApprove, onReject }) {
   // If the queue is empty (no items), show a friendly empty state.
   // This handles the case where a user deletes all items or starts with a fresh slate.
   if (items.length === 0) {
@@ -145,33 +232,36 @@ function ReviewQueue({ items, onStatusChange, onDelete }) {
             {items.map((item) => (
               // key={item.id} tells React which row is which when the list updates.
               // Without a key, React might re-render the wrong rows when you add/remove items.
-              <tr className="border-b border-line last:border-0" key={item.id}>
-                <td className="py-4 pr-4 font-bold">{item.label}</td>
-                <td className="py-4 pr-4 text-muted">{item.owner}</td>
-                <td className="py-4 pr-4">
-                  <Badge
-                    label={item.status}
-                    styleClass={
-                      statusStyle[item.status] ??
-                      "bg-gray-50 text-gray-700 border-gray-200"
-                    }
+              <Fragment key={item.id}>
+                <tr className="border-b border-line last:border-0">
+                  <td className="py-4 pr-4 font-bold">{item.label}</td>
+                  <td className="py-4 pr-4 text-muted">{item.owner}</td>
+                  <td className="py-4 pr-4">
+                    <Badge
+                      label={item.status}
+                      styleClass={
+                        statusStyle[item.status] ??
+                        "bg-gray-50 text-gray-700 border-gray-200"
+                      }
+                    />
+                  </td>
+                  <td className="py-4 pr-4">
+                    <Badge
+                      label={item.risk}
+                      styleClass={
+                        riskStyle[item.risk] ??
+                        "bg-gray-50 text-gray-700 border-gray-200"
+                      }
+                    />
+                  </td>
+                  <ActionCell
+                    item={item}
+                    onStatusChange={onStatusChange}
+                    onDelete={onDelete}
                   />
-                </td>
-                <td className="py-4 pr-4">
-                  <Badge
-                    label={item.risk}
-                    styleClass={
-                      riskStyle[item.risk] ??
-                      "bg-gray-50 text-gray-700 border-gray-200"
-                    }
-                  />
-                </td>
-                <ActionCell
-                  item={item}
-                  onStatusChange={onStatusChange}
-                  onDelete={onDelete}
-                />
-              </tr>
+                </tr>
+                <SuggestionRow item={item} onApprove={onApprove} onReject={onReject} />
+              </Fragment>
             ))}
           </tbody>
         </table>
