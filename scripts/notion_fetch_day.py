@@ -61,16 +61,19 @@ def dump(block_id, depth=0):
         if b.get("has_children"):
             dump(b["id"], depth+1)
 
-def find_day19(block_id):
+def find_day(block_id, label):
     for b in get_children(block_id):
-        if b["type"] == "child_page" and "Day 19" in b["child_page"]["title"]:
+        if b["type"] == "child_page" and label in b["child_page"]["title"]:
             print("=== " + b["child_page"]["title"] + " ===")
             dump(b["id"])
             return True
         if b.get("has_children"):
-            if find_day19(b["id"]):
+            if find_day(b["id"], label):
                 return True
     return False
 
-if not find_day19(PAGE_ID):
-    print("Day 19 page not found")
+# Usage: python notion_fetch_day.py [DAY_NUMBER]  (defaults to 20)
+day = sys.argv[1] if len(sys.argv) > 1 else "20"
+label = f"Day {day}"
+if not find_day(PAGE_ID, label):
+    print(f"{label} page not found")
