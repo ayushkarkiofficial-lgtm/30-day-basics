@@ -156,6 +156,7 @@ function App() {
         owner: candidate.owner,
         status: candidate.status,
         risk: candidate.risk,
+        current_workflow: candidate.currentWorkflow,
       })
       // We do NOT send candidate.id — Supabase generates a UUID automatically.
       .select()   // ask Supabase to return the saved row
@@ -189,6 +190,7 @@ function App() {
           owner: data.owner,
           risk: data.risk,
           status: data.status,
+          current_workflow: data.current_workflow,
           created_at: data.created_at,
         }),
       }).catch((err) => console.warn("Make webhook failed:", err.message));
@@ -325,6 +327,51 @@ function App() {
     setQueueItems((current) => current.filter((item) => item.id !== id));
   }
 
+  // APPROVE AN AI SUGGESTION
+  //
+  // The Day-20 human-review point. The AI (in Make) only ever writes
+  // ai_status="Pending". A human moving it to "Approved" is the required
+  // approval step — the AI never auto-approves. Same UPDATE-then-replace
+  // shape as handleStatusChange (Day 12).
+  async function handleApproveSuggestion(id) {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .update({ ai_status: "Approved" })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Supabase approve error:", error.message);
+      return;
+    }
+
+    setQueueItems((current) =>
+      current.map((item) => (item.id === id ? data : item))
+    );
+  }
+
+  // REJECT AN AI SUGGESTION
+  // Same as approve, but records the human's "no". The suggestion is kept
+  // for the record (ai_status="Rejected"); we do not delete the AI fields.
+  async function handleRejectSuggestion(id) {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .update({ ai_status: "Rejected" })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Supabase reject error:", error.message);
+      return;
+    }
+
+    setQueueItems((current) =>
+      current.map((item) => (item.id === id ? data : item))
+    );
+  }
+
   return (
     <main className="min-h-screen bg-canvas text-ink">
       <section className="mx-auto grid w-full max-w-7xl gap-8 px-5 py-6 md:px-8 lg:grid-cols-[260px_1fr]">
@@ -354,6 +401,8 @@ function App() {
                 items={activeItems}
                 onStatusChange={handleStatusChange}
                 onDelete={handleDelete}
+                onApprove={handleApproveSuggestion}
+                onReject={handleRejectSuggestion}
               />
               <CompletedAutomations items={completedItems} />
             </>
