@@ -61,6 +61,7 @@ function IntakeForm({ onAddCandidate }) {
       owner: formValues.owner.trim(),
       status: "Ready to map",
       risk: formValues.risk,
+      currentWorkflow: formValues.currentWorkflow.trim(),
     });
 
     setFormValues(initialForm);
