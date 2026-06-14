@@ -12,6 +12,14 @@ function IntakeForm({ onAddCandidate }) {
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
 
+  // DAY 23 UX state:
+  // - isSubmitting: true while the save is in flight → disables the button and
+  //   shows "Saving…" so the user knows something is happening and can't double-submit.
+  // - submitError: a server-side failure message (the save itself failed), shown
+  //   inline. Previously the form showed "Draft added" even when the save failed.
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
   function handleFieldChange(event) {
     const { name, value } = event.target;
 
@@ -25,6 +33,7 @@ function IntakeForm({ onAddCandidate }) {
       [name]: "",
     }));
     setSuccessMessage("");
+    setSubmitError("");
   }
 
   function validateForm() {
@@ -45,24 +54,40 @@ function IntakeForm({ onAddCandidate }) {
     return nextErrors;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const nextErrors = validateForm();
     setErrors(nextErrors);
+    setSubmitError("");
 
     if (Object.keys(nextErrors).length > 0) {
       setSuccessMessage("");
       return;
     }
 
-    onAddCandidate({
+    // DAY 23: await the save and react to its result. Show "Saving…" while it's
+    // in flight; show success ONLY if the row actually saved; show an inline
+    // error if it didn't.
+    setIsSubmitting(true);
+    setSuccessMessage("");
+
+    const result = await onAddCandidate({
       label: formValues.processName.trim(),
       owner: formValues.owner.trim(),
       status: "Ready to map",
       risk: formValues.risk,
       currentWorkflow: formValues.currentWorkflow.trim(),
     });
+
+    setIsSubmitting(false);
+
+    if (!result || !result.ok) {
+      setSubmitError(
+        (result && result.error) || "Couldn't save the draft. Please try again."
+      );
+      return;
+    }
 
     setFormValues(initialForm);
     setSuccessMessage("Draft added to the review queue.");
@@ -140,12 +165,17 @@ function IntakeForm({ onAddCandidate }) {
           ) : null}
         </label>
         <button
-          className="min-h-12 rounded-md bg-accent px-5 py-3 font-extrabold text-white outline-offset-2 hover:bg-[#164c40] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent md:w-fit"
+          className="min-h-12 rounded-md bg-accent px-5 py-3 font-extrabold text-white outline-offset-2 hover:bg-[#164c40] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-60 md:w-fit"
           type="submit"
+          disabled={isSubmitting}
         >
-          Save draft
+          {isSubmitting ? "Saving…" : "Save draft"}
         </button>
-        {successMessage ? (
+        {submitError ? (
+          <p className="self-center text-sm font-bold text-red-700" role="alert">
+            {submitError}
+          </p>
+        ) : successMessage ? (
           <p className="self-center text-sm font-bold text-accent" role="status">
             {successMessage}
           </p>

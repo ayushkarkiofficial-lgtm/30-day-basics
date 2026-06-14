@@ -62,42 +62,47 @@ function App() {
   // before the data arrives from the server.
   const [isLoading, setIsLoading] = useState(true);
 
-  // FETCH FROM SUPABASE ON FIRST LOAD
+  // loadError — set when the queue fetch FAILS.
   //
-  // useEffect with an empty dependency array [] runs exactly once —
-  // after the component mounts (appears on screen for the first time).
-  //
-  // WHY useEffect instead of just calling supabase directly?
-  // Fetching data is a "side effect" — it reaches outside of React
-  // to talk to a server. React requires side effects to live in useEffect
-  // so they run at the right time (after render, not during it).
-  //
-  // WHY async inside useEffect?
-  // useEffect's callback cannot itself be async. The pattern is to define
-  // an async function inside it and call it immediately.
-  useEffect(() => {
-    async function fetchItems() {
-      const { data, error } = await supabase
-        .from(TABLE)
-        .select("*")
-        .order("created_at", { ascending: false });
-      // .select("*")  — fetch all columns
-      // .order(...)   — newest items first (matches what the form does when adding)
+  // DAY 23 UX FIX: previously a failed fetch just logged to the console and
+  // left queueItems empty — so the screen showed the "No candidates yet"
+  // EMPTY state, which is indistinguishable from a real empty queue. The user
+  // would think their data was gone. Now a failure sets loadError, and the UI
+  // shows a distinct error panel with a Retry button instead of the empty state.
+  const [loadError, setLoadError] = useState("");
 
-      if (error) {
-        console.error("Supabase fetch error:", error.message);
-        setIsLoading(false);
-        return;
-      }
+  // FETCH FROM SUPABASE
+  //
+  // Lifted out of useEffect (Day 23) so the Retry button can re-run it.
+  // Fetching data is a "side effect" — it reaches outside React to a server —
+  // so it stays an async function that React calls at the right time.
+  async function fetchItems() {
+    setIsLoading(true);
+    setLoadError("");
 
-      setQueueItems(data);
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select("*")
+      .order("created_at", { ascending: false });
+    // .select("*")  — fetch all columns
+    // .order(...)   — newest items first (matches what the form does when adding)
+
+    if (error) {
+      console.error("Supabase fetch error:", error.message);
+      setLoadError("Couldn't load the queue from the database.");
       setIsLoading(false);
+      return;
     }
 
+    setQueueItems(data);
+    setIsLoading(false);
+  }
+
+  // Run the fetch once, when the component first mounts.
+  // [] means: never re-run automatically (the Retry button calls fetchItems directly).
+  useEffect(() => {
     fetchItems();
   }, []);
-  // [] means: run this effect once, when the component first mounts.
-  // No dependencies = never re-run automatically.
 
   // FETCH UPLOADED FILES ON FIRST LOAD
   // A second, independent effect — newest files first — so the list
@@ -163,8 +168,11 @@ function App() {
       .single();  // we inserted one row, so expect one row back
 
     if (error) {
+      // DAY 23 UX FIX: report the failure back to the form so it can show an
+      // inline error. Previously this only hit the console, and the form
+      // optimistically showed "Draft added" even when the save had failed.
       console.error("Supabase insert error:", error.message);
-      return;
+      return { ok: false, error: "Couldn't save the draft. Please try again." };
     }
 
     // Prepend the saved row (with real UUID + created_at) to the list
@@ -195,6 +203,10 @@ function App() {
         }),
       }).catch((err) => console.warn("Make webhook failed:", err.message));
     }
+
+    // Tell the form the save succeeded so it can show the success message
+    // only now — after the row is actually in the database (Day 23).
+    return { ok: true, error: "" };
   }
 
   // HANDLE A FILE UPLOAD
@@ -313,13 +325,22 @@ function App() {
   // We already know which id to remove from local state, so no need
   // to ask Supabase for data back.
   async function handleDelete(id) {
+    // DAY 23 UX FIX: Delete is destructive and can't be undone. Confirm first
+    // so a stray click doesn't silently remove a row.
+    if (!window.confirm("Delete this process? This can't be undone.")) {
+      return;
+    }
+
     const { error } = await supabase
       .from(TABLE)
       .delete()
       .eq("id", id);  // only delete the row with this exact id
 
     if (error) {
+      // DAY 23 UX FIX: surface the failure instead of only logging it, so the
+      // user isn't left thinking the row was deleted when it wasn't.
       console.error("Supabase delete error:", error.message);
+      window.alert("Couldn't delete that process. Please try again.");
       return;
     }
 
@@ -389,11 +410,35 @@ function App() {
             onView={handleViewFile}
           />
 
-          {/* Show a loading message while the first fetch is in progress.
-              Once isLoading is false, render the actual queue. */}
+          {/* Three distinct states (Day 23):
+              - loading  → "Loading…" message
+              - error    → a clear error panel with Retry (NOT the empty state)
+              - loaded   → the actual queue (which has its own empty state)
+              Keeping error separate from loaded means a failed fetch no longer
+              masquerades as "No candidates yet". */}
           {isLoading ? (
             <section className="rounded-lg border border-line bg-white p-6 shadow-panel">
               <p className="text-sm text-muted">Loading queue from database…</p>
+            </section>
+          ) : loadError ? (
+            <section
+              className="rounded-lg border border-red-200 bg-red-50 p-6 shadow-panel"
+              role="alert"
+            >
+              <p className="text-sm font-extrabold uppercase text-red-700">
+                Couldn't load
+              </p>
+              <h2 className="mt-2 text-2xl font-extrabold text-ink">
+                The review queue didn't load
+              </h2>
+              <p className="mt-2 text-sm text-red-700">{loadError}</p>
+              <button
+                type="button"
+                onClick={fetchItems}
+                className="mt-5 min-h-12 rounded-md bg-accent px-5 py-3 font-extrabold text-white outline-offset-2 hover:bg-[#164c40] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent md:w-fit"
+              >
+                Retry
+              </button>
             </section>
           ) : (
             <>
