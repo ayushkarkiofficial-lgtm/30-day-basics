@@ -70,8 +70,8 @@ function FileUpload({ files, onUpload, onMarkDone, onView }) {
         />
         <button
           type="submit"
-          disabled={isUploading}
-          className="min-h-12 rounded-md bg-accent px-5 py-3 font-extrabold text-white outline-offset-2 hover:bg-[#164c40] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-60 md:w-fit"
+          disabled={isUploading || !selectedFile}
+          className="min-h-12 rounded-md bg-accent px-5 py-3 font-extrabold text-white outline-offset-2 hover:bg-[#164c40] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-60 disabled:cursor-not-allowed md:w-fit"
         >
           {isUploading ? "Uploading…" : "Upload"}
         </button>
