@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://snazzy-conkies-2372cf.netlify.app/sitemap.xml
