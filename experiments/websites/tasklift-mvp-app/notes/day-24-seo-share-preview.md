@@ -43,6 +43,25 @@ Build clean, 16/16 vitest pass.
 3. No on-page images to optimize — the app renders data, not media. Only share/favicon
    assets were added, and those are already small + `optimize=True` PNGs.
 
+## Live PageSpeed / Lighthouse results (2026-06-15, post-deploy)
+
+Overall Performance score: ______ (fill in)
+
+**Accessibility**
+- ⚠️ "Form elements do not have associated labels" → the file `<input type="file">` in
+  `FileUpload.jsx` had no accessible name. **FIXED**: added
+  `aria-label="Choose a PDF, PNG, or JPG file to upload"`. (IntakeForm inputs were already
+  fine — wrapped in `<label>`.)
+
+**Performance (logged, mostly not fixed — kept simple per Day 24)**
+- ⚠️ Reduce unused JavaScript — est. 62 KiB. Same root cause as the bundle note above
+  (`@supabase/supabase-js`). Real fix = code-split / lazy-load; deferred.
+- ⚠️ Render-blocking requests — est. 80 ms. Minor; the single CSS/JS bundle. Vite handles
+  most of this; not worth hand-optimizing for 80 ms at this stage.
+- ❗ Document request latency — "Error!". This is TTFB on the Netlify free tier (cold
+  edge / measurement variance), not an app code issue. Re-run a few times; it fluctuates.
+- LCP breakdown / 3rd parties — no action flagged.
+
 ## Verification checklist (manual — user's hands-on step)
 
 After the next Netlify deploy (these assets must be live for crawlers to fetch them):
