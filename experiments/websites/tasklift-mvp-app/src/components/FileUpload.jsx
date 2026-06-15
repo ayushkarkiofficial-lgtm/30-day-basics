@@ -64,6 +64,7 @@ function FileUpload({ files, onUpload, onMarkDone, onView }) {
       <form className="grid gap-4" onSubmit={handleSubmit}>
         <input
           type="file"
+          aria-label="Choose a PDF, PNG, or JPG file to upload"
           accept="application/pdf,image/png,image/jpeg"
           onChange={handleFileChange}
           className="rounded-md border border-line px-3 py-3 text-sm file:mr-4 file:rounded file:border-0 file:bg-accent file:px-4 file:py-2 file:font-bold file:text-white"
